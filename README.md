@@ -97,6 +97,7 @@ This installs everything needed to download observations, load the model and run
 | `cube` | GDAL bindings for ISIS cube export |
 | `dev` | The test suite |
 | `notebooks` | IPython and Jupyter |
+| `diffusion` | Conditional diffusion and flow-matching models |
 | `all` | Everything except `cube` |
 
 For example, `uv sync --extra train --extra postprocess`. The GDAL Python bindings in `cube` must match a system GDAL installation.
@@ -161,6 +162,7 @@ The dataset used to train and evaluate HiPredict, including its patch records, i
 - [Preprocessing](docs/preprocessing.md): the HiPROC + ISIS backend and the processing pipeline.
 - [Model weights](docs/model.md): how weights are located, verified and used offline.
 - [Workflows](docs/workflows.md): patches, training, evaluation, exports and storage.
+- [Diffusion and flow matching](docs/diffusion.md): installation, training, evaluation and the HiPredict adapter.
 - [`files/`](files/README.md): the observation lists and statistics shipped with the code.
 
 ## Data and software

@@ -95,6 +95,18 @@ class BaseHiRISEDataset(Dataset):
     def _root(self):
         return self.data_root if self.data_root is not None else os.getcwd()
 
+    def load_ccd_arrays(self, set_id, paths):
+        """Read raw CCD arrays relative to the dataset's record directory."""
+        arrays = {}
+        for ccd, value in paths.items():
+            path = Path(self._root()) / Path(value)
+            if not path.is_file():
+                raise FileNotFoundError(
+                    f"Missing patch file for set {set_id}, CCD {ccd}: {path}"
+                )
+            arrays[ccd] = np.load(path)
+        return arrays
+
 
 class HiRISEDataset(BaseHiRISEDataset):
     """
@@ -188,10 +200,13 @@ class HiRISEDataset(BaseHiRISEDataset):
 
         # ------ LOAD IMAGES ------
         try:
-            root = self.data_root if self.data_root is not None else os.getcwd()
-            band_imgs = [np.load(os.path.join(root, df.at[ccd, 'Path'])) for ccd in self.band_ccds]
-            neighbour_imgs = [np.load(os.path.join(root, df.at[ccd, 'Path'])) for ccd in self.neighbour_ccds]
-            label_img = np.load(os.path.join(root, df.at['RED4', 'Path']))
+            images = self.load_ccd_arrays(set_idx, {
+                ccd: df.at[ccd, 'Path']
+                for ccd in [*self.band_ccds, *self.neighbour_ccds, 'RED4']
+            })
+            band_imgs = [images[ccd] for ccd in self.band_ccds]
+            neighbour_imgs = [images[ccd] for ccd in self.neighbour_ccds]
+            label_img = images['RED4']
         except FileNotFoundError as e:
             raise FileNotFoundError(f"(Inside __getitem__) File not found for set {set_idx}: {e}")
 
@@ -363,16 +378,10 @@ class PatchInferenceDataset(BaseHiRISEDataset):
         if missing_ccds:
             raise KeyError(f"Set {set_id} is missing required CCD rows: {missing_ccds}")
 
-        paths = {ccd: Path(self._root()) / Path(set_df.at[ccd, "Path"]) for ccd in self.required_ccds}
-        for ccd, path in paths.items():
-            if not path.is_file():
-                raise FileNotFoundError(f"Missing patch file for set {set_id}, CCD {ccd}: {path}")
-
-        bg = np.load(paths["BG12"])
-        ir = np.load(paths["IR10"])
-        r3 = np.load(paths["RED3"])
-        r4 = np.load(paths["RED4"])
-        r5 = np.load(paths["RED5"])
+        images = self.load_ccd_arrays(set_id, {
+            ccd: set_df.at[ccd, "Path"] for ccd in self.required_ccds
+        })
+        bg, ir, r3, r4, r5 = (images[ccd] for ccd in self.required_ccds)
 
         if bg.ndim != 2 or ir.ndim != 2 or r4.ndim != 2:
             raise ValueError(

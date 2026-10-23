@@ -52,8 +52,14 @@ dev = [
 cube = [
   "gdal",
 ]
+diffusion = [
+  "kornia",
+  "pydantic>=2",
+  "scikit-image",
+  "wandb",
+]
 all = [
-  "cartopy", "ipython", "jupyter", "piq", "pyproj",
+  "cartopy", "ipython", "jupyter", "kornia", "piq", "pydantic>=2", "pyproj",
   "pytest", "scikit-image", "shap", "wandb",
 ]
 

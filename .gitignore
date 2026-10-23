@@ -5,7 +5,7 @@ files/*
 !files/*.txt
 
 # Model weights and locally trained models
-models/
+/models/
 *.pt
 *.pth
 *.safetensors
